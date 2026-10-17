@@ -125,8 +125,20 @@ class TarjetaProducto extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: Center(
-                      child: ImagenProducto(producto: producto, tamano: 115),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final tamano =
+                            constraints.maxWidth < constraints.maxHeight
+                            ? constraints.maxWidth
+                            : constraints.maxHeight;
+
+                        return Center(
+                          child: ImagenProducto(
+                            producto: producto,
+                            tamano: tamano,
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const Positioned(
