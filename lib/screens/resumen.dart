@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/models.dart';
 import '../widgets/componentes.dart';
 import 'inicio.dart';
@@ -13,12 +13,18 @@ class ResumenScreen extends StatefulWidget {
 
 class _ResumenScreenState extends State<ResumenScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nombreController = TextEditingController();
+  final _telefonoController = TextEditingController();
+  final _barrioController = TextEditingController();
   final _direccionController = TextEditingController();
 
   String metodoPago = 'Tarjeta débito/crédito';
 
   @override
   void dispose() {
+    _nombreController.dispose();
+    _telefonoController.dispose();
+    _barrioController.dispose();
     _direccionController.dispose();
     super.dispose();
   }
@@ -34,6 +40,11 @@ class _ResumenScreenState extends State<ResumenScreen> {
     }
 
     if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Revisa los campos marcados en rojo.'),
+        ),
+      );
       return;
     }
 
@@ -53,8 +64,11 @@ class _ResumenScreenState extends State<ResumenScreen> {
         content: Text(
           'Tu pedido por ${precioCOP(CarritoBodyFit.total)} '
           'se registró correctamente en la demostración.\n\n'
-          'Método de pago: $metodoPago\n'
-          'Dirección: ${_direccionController.text.trim()}\n\n'
+          'Cliente: ${_nombreController.text.trim()}\n'
+          'Teléfono: ${_telefonoController.text}\n'
+          'Barrio: ${_barrioController.text.trim()}\n'
+          'Dirección: ${_direccionController.text.trim()}\n'
+          'Método de pago: $metodoPago\n\n'
           'No se realizó ningún cobro real.',
           textAlign: TextAlign.center,
         ),
@@ -225,28 +239,65 @@ class _ResumenScreenState extends State<ResumenScreen> {
                         }),
 
                         const SizedBox(height: 12),
-                        const TituloSeccion('Entrega'),
+                        const TituloSeccion('Datos del comprador'),
 
                         Form(
                           key: _formKey,
-                          child: TextFormField(
-                            controller: _direccionController,
-                            textCapitalization:
-                                TextCapitalization.sentences,
-                            decoration: const InputDecoration(
-                              labelText: 'Dirección de entrega',
-                              hintText: 'Ej. Calle 45 #12-30, Barranquilla',
-                              prefixIcon: Icon(
-                                Icons.location_on_outlined,
+                          child: Column(
+                            children: [
+                              CampoTextoBodyFit(
+                                label: 'Nombre completo',
+                                icono: Icons.person_outline,
+                                controller: _nombreController,
+                                validator: (valor) {
+                                  if (valor == null ||
+                                      valor.trim().length < 3) {
+                                    return 'Ingresa tu nombre completo.';
+                                  }
+                                  return null;
+                                },
                               ),
-                            ),
-                            validator: (valor) {
-                              if (valor == null ||
-                                  valor.trim().length < 5) {
-                                return 'Ingresa una dirección válida.';
-                              }
-                              return null;
-                            },
+                              CampoTextoBodyFit(
+                                label: 'Teléfono',
+                                icono: Icons.phone_outlined,
+                                controller: _telefonoController,
+                                teclado: TextInputType.phone,
+                                formatos: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                validator: (valor) {
+                                  if (valor == null ||
+                                      valor.trim().length < 10) {
+                                    return 'Ingresa un teléfono válido.';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              CampoTextoBodyFit(
+                                label: 'Barrio',
+                                icono: Icons.location_city_outlined,
+                                controller: _barrioController,
+                                validator: (valor) {
+                                  if (valor == null ||
+                                      valor.trim().length < 3) {
+                                    return 'Ingresa tu barrio.';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              CampoTextoBodyFit(
+                                label: 'Dirección de entrega',
+                                icono: Icons.location_on_outlined,
+                                controller: _direccionController,
+                                validator: (valor) {
+                                  if (valor == null ||
+                                      valor.trim().length < 5) {
+                                    return 'Ingresa una dirección válida.';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
                           ),
                         ),
 

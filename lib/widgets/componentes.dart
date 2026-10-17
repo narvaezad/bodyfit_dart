@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter/services.dart';
 import '../models/models.dart';
 
 const verdeBodyFit = Color(0xFFE5FF35);
@@ -166,6 +166,54 @@ class TarjetaProducto extends StatelessWidget {
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class CampoTextoBodyFit extends StatelessWidget {
+  final String label;
+  final IconData icono;
+  final TextEditingController controller;
+  final String? Function(String?)? validator;
+  final TextInputType teclado;
+  final List<TextInputFormatter>? formatos;
+
+  const CampoTextoBodyFit({
+    super.key,
+    required this.label,
+    required this.icono,
+    required this.controller,
+    this.validator,
+    this.teclado = TextInputType.text,
+    this.formatos,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: teclado,
+        inputFormatters: formatos,
+        validator: validator,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: label,
+          hintStyle: const TextStyle(color: grisBodyFit),
+          prefixIcon: Icon(icono, color: grisBodyFit),
+          filled: true,
+          fillColor: panelBodyFit,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: verdeBodyFit),
+          ),
         ),
       ),
     );
