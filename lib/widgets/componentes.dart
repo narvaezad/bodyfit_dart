@@ -1,85 +1,169 @@
+
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 
-/// COMPONENTE PERSONALIZADO 1: tarjeta de producto reutilizable.
-class ProductoCard extends StatelessWidget {
-  final Producto producto;
-  final VoidCallback onTap;
-  const ProductoCard({super.key, required this.producto, required this.onTap});
+const verdeBodyFit = Color(0xFFE5FF35);
+const panelBodyFit = Color(0xFF191A1D);
+const grisBodyFit = Color(0xFF96979C);
+
+class TituloSeccion extends StatelessWidget {
+  final String titulo;
+
+  const TituloSeccion(this.titulo, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF262626),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(producto.icono, size: 48, color: color),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(producto.nombre,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            Text(formatoCOP(producto.precio),
-                style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-          ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        titulo.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1,
         ),
       ),
     );
   }
 }
 
-/// COMPONENTE PERSONALIZADO 2: campo de formulario reutilizable con ícono.
-class CampoFormulario extends StatelessWidget {
-  final String etiqueta;
-  final IconData icono;
-  final TextEditingController controlador;
-  final String? Function(String?) validador;
-  final TextInputType teclado;
-  final int lineas;
+class BotonBodyFit extends StatelessWidget {
+  final String texto;
+  final VoidCallback onPressed;
+  final IconData? icono;
+  final bool verde;
 
-  const CampoFormulario({
+  const BotonBodyFit({
     super.key,
-    required this.etiqueta,
-    required this.icono,
-    required this.controlador,
-    required this.validador,
-    this.teclado = TextInputType.text,
-    this.lineas = 1,
+    required this.texto,
+    required this.onPressed,
+    this.icono,
+    this.verde = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controlador,
-      validator: validador,
-      keyboardType: teclado,
-      maxLines: lineas,
-      decoration: InputDecoration(
-        labelText: etiqueta,
-        prefixIcon: Icon(icono),
-        filled: true,
-        fillColor: const Color(0xFF1A1A1A),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icono ?? Icons.arrow_forward),
+        label: Text(
+          texto,
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: verde ? verdeBodyFit : Colors.white,
+          foregroundColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          elevation: 0,
+        ),
+      ),
+    );
+  }
+}
+
+class ImagenProducto extends StatelessWidget {
+  final Producto producto;
+  final double tamano;
+
+  const ImagenProducto({
+    super.key,
+    required this.producto,
+    this.tamano = 80,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: tamano,
+      height: tamano,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8E5DB),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(
+        producto.icono,
+        size: tamano * 0.53,
+        color: const Color(0xFF252525),
+      ),
+    );
+  }
+}
+
+class TarjetaProducto extends StatelessWidget {
+  final Producto producto;
+  final VoidCallback onTap;
+
+  const TarjetaProducto({
+    super.key,
+    required this.producto,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: panelBodyFit,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Center(
+                      child: ImagenProducto(
+                        producto: producto,
+                        tamano: 115,
+                      ),
+                    ),
+                  ),
+                  const Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Icon(
+                      Icons.favorite_border,
+                      size: 21,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              producto.nombre,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              precioCOP(producto.precio),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

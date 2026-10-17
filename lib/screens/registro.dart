@@ -1,187 +1,282 @@
-import 'package:flutter/material.dart';
-import '../widgets/componentes.dart';
-import '../models/models.dart';
 
-/// PANTALLA 2: formulario para registrar productos del pedido.
+import 'package:flutter/material.dart';
+import '../models/models.dart';
+import '../widgets/componentes.dart';
+import 'resumen.dart';
+
 class RegistroScreen extends StatefulWidget {
-  const RegistroScreen({super.key});
+  final Producto producto;
+
+  const RegistroScreen({
+    super.key,
+    required this.producto,
+  });
 
   @override
   State<RegistroScreen> createState() => _RegistroScreenState();
 }
 
 class _RegistroScreenState extends State<RegistroScreen> {
-  final _form = GlobalKey<FormState>();
-  final _nombre = TextEditingController(text: Pedido.cliente);
-  final _direccion = TextEditingController(text: Pedido.direccion);
-  Producto? _producto;
-  String? _talla;
-  double _cantidad = 1;
-  bool _express = Pedido.express;
-  bool _argsLeidos = false;
-
-  List<String> get _tallas => _producto?.categoria == 'Accesorios'
-      ? ['Única']
-      : ['XS', 'S', 'M', 'L', 'XL'];
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_argsLeidos) {
-      final arg = ModalRoute.of(context)?.settings.arguments;
-      if (arg is Producto) _producto = arg;
-      _argsLeidos = true;
-    }
-  }
-
-  @override
-  void dispose() {
-    _nombre.dispose();
-    _direccion.dispose();
-    super.dispose();
-  }
-
-  void _mensaje(String texto, {bool error = false}) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(texto),
-        backgroundColor: error ? Colors.red.shade700 : Colors.green.shade700,
-      ));
-  }
-
-  void _agregar() {
-    if (!_form.currentState!.validate()) {
-      _mensaje('Revisa los campos marcados en rojo', error: true);
-      return;
-    }
-    if (_talla == null) {
-      _mensaje('Selecciona una talla', error: true);
-      return;
-    }
-    Pedido.cliente = _nombre.text.trim();
-    Pedido.direccion = _direccion.text.trim();
-    Pedido.express = _express;
-    Pedido.items.add(ItemPedido(_producto!, _talla!, _cantidad.round()));
-    setState(() {
-      _talla = null;
-      _cantidad = 1;
-    });
-    _mensaje('Producto agregado al pedido (${Pedido.unidades} unidades)');
-  }
-
-  void _irAlResumen() {
-    if (Pedido.items.isEmpty) {
-      _mensaje('Aún no has agregado productos', error: true);
-      return;
-    }
-    Pedido.express = _express;
-    Navigator.pushNamed(context, '/resumen');
-  }
+  String talla = 'M';
+  int cantidad = 1;
 
   @override
   Widget build(BuildContext context) {
+    final producto = widget.producto;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar pedido')),
-      body: Form(
-        key: _form,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back),
+        ),
+        title: const Text(
+          'Detalle de producto',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ResumenScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.shopping_bag_outlined),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
           children: [
-            CampoFormulario(
-              etiqueta: 'Nombre completo',
-              icono: Icons.person_outline,
-              controlador: _nombre,
-              validador: (v) {
-                final t = v?.trim() ?? '';
-                if (t.isEmpty) return 'Ingresa tu nombre';
-                if (t.length < 3) return 'Mínimo 3 caracteres';
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<Producto>(
-              initialValue: _producto,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: 'Producto',
-                prefixIcon: const Icon(Icons.shopping_bag_outlined),
-                filled: true,
-                fillColor: const Color(0xFF1A1A1A),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 20),
+                children: [
+                  Container(
+                    height: 290,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF17181A),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Icon(
+                            producto.icono,
+                            size: 170,
+                            color: const Color(0xFFE7E4DB),
+                          ),
+                        ),
+                        const Positioned(
+                          top: 12,
+                          right: 12,
+                          child: Icon(
+                            Icons.favorite_border,
+                            size: 26,
+                          ),
+                        ),
+                        Positioned(
+                          left: 12,
+                          bottom: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: verdeBodyFit,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'BODYFIT ORIGINAL',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Text(
+                    producto.nombre,
+                    style: const TextStyle(
+                      fontSize: 23,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Row(
+                    children: [
+                      Icon(Icons.star, color: verdeBodyFit, size: 18),
+                      SizedBox(width: 4),
+                      Text(
+                        '4.8',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        '(128 reseñas)',
+                        style: TextStyle(
+                          color: grisBodyFit,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    precioCOP(producto.precio),
+                    style: const TextStyle(
+                      fontSize: 29,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const Divider(height: 28, color: Color(0xFF292A2D)),
+                  const Text(
+                    'Descripción y material',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    producto.descripcion,
+                    style: const TextStyle(
+                      color: grisBodyFit,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Talla',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: ['XS', 'S', 'M', 'L', 'XL'].map((valor) {
+                      final seleccionada = talla == valor;
+
+                      return Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 7),
+                          child: SizedBox(
+                            height: 48,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setState(() => talla = valor);
+                              },
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: seleccionada
+                                    ? Colors.white
+                                    : panelBodyFit,
+                                foregroundColor: seleccionada
+                                    ? Colors.black
+                                    : Colors.white,
+                                side: BorderSide(
+                                  color: seleccionada
+                                      ? Colors.white
+                                      : const Color(0xFF292A2D),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                              child: Text(
+                                valor,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Cantidad',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: panelBodyFit,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          onPressed: cantidad > 1
+                              ? () => setState(() => cantidad--)
+                              : null,
+                          icon: const Icon(Icons.remove),
+                        ),
+                        Text(
+                          '$cantidad',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: cantidad < 10
+                              ? () => setState(() => cantidad++)
+                              : null,
+                          icon: const Icon(
+                            Icons.add,
+                            color: verdeBodyFit,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              items: [
-                for (final p in catalogo)
-                  DropdownMenuItem(
-                    value: p,
-                    child: Text('${p.nombre} · ${formatoCOP(p.precio)}',
-                        overflow: TextOverflow.ellipsis),
-                  ),
-              ],
-              validator: (v) => v == null ? 'Selecciona un producto' : null,
-              onChanged: (p) => setState(() {
-                _producto = p;
-                _talla = null;
-              }),
             ),
-            const SizedBox(height: 16),
-            const Text('Talla', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final t in _tallas)
-                  ChoiceChip(
-                    label: Text(t),
-                    selected: _talla == t,
-                    onSelected: (_) => setState(() => _talla = t),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text('Cantidad: ${_cantidad.round()}',
-                style: const TextStyle(fontWeight: FontWeight.w600)),
-            Slider(
-              value: _cantidad,
-              min: 1,
-              max: 10,
-              divisions: 9,
-              label: '${_cantidad.round()}',
-              onChanged: (v) => setState(() => _cantidad = v),
-            ),
-            const Text('Descuento: 10% desde 3 unidades, 15% desde 5.',
-                style: TextStyle(color: Colors.white54, fontSize: 12)),
-            const SizedBox(height: 16),
-            CampoFormulario(
-              etiqueta: 'Dirección de entrega',
-              icono: Icons.location_on_outlined,
-              controlador: _direccion,
-              lineas: 2,
-              validador: (v) {
-                final t = v?.trim() ?? '';
-                if (t.isEmpty) return 'Ingresa la dirección';
-                if (t.length < 8) return 'Escribe una dirección más completa';
-                return null;
-              },
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Envío express (+\$7.000)'),
-              value: _express,
-              onChanged: (v) => setState(() => _express = v),
-            ),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: _agregar,
-              icon: const Icon(Icons.add),
-              label: const Text('Agregar al pedido'),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _irAlResumen,
-              icon: const Icon(Icons.receipt_long),
-              label: Text('Ver resumen (${Pedido.unidades})'),
+            Container(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+              decoration: const BoxDecoration(
+                color: Color(0xFF101113),
+                border: Border(
+                  top: BorderSide(color: Color(0xFF242529)),
+                ),
+              ),
+              child: BotonBodyFit(
+                texto: 'Agregar al carrito',
+                icono: Icons.shopping_bag_outlined,
+                verde: false,
+                onPressed: () {
+                  CarritoBodyFit.agregar(producto, talla, cantidad);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${producto.nombre} agregado al carrito.',
+                      ),
+                      action: SnackBarAction(
+                        label: 'VER CARRITO',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ResumenScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

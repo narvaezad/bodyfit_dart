@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
-import '../widgets/componentes.dart';
-import '../models/models.dart';
 
-/// PANTALLA 1: presentación de la app y acceso a las funcionalidades.
+import 'package:flutter/material.dart';
+import '../models/models.dart';
+import '../widgets/componentes.dart';
+import 'registro.dart';
+import 'resumen.dart';
+
 class InicioScreen extends StatefulWidget {
   const InicioScreen({super.key});
 
@@ -11,101 +13,312 @@ class InicioScreen extends StatefulWidget {
 }
 
 class _InicioScreenState extends State<InicioScreen> {
-  String? _categoria; // null = todas
+  String busqueda = '';
+  String categoria = 'Todos';
 
-  Future<void> _ir(String ruta, [Object? args]) async {
-    await Navigator.pushNamed(context, ruta, arguments: args);
-    if (mounted) setState(() {}); // refresca el contador del carrito
+  final categorias = const [
+    'Todos',
+    'Camisetas',
+    'Pantalones',
+    'Shorts',
+    'Accesorios',
+  ];
+
+  void abrirProducto(Producto producto) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegistroScreen(producto: producto),
+      ),
+    );
+
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
-    final productos = _categoria == null
-        ? catalogo
-        : catalogo.where((p) => p.categoria == _categoria).toList();
+    final productos = productosBodyFit.where((p) {
+      final coincideCategoria =
+          categoria == 'Todos' || p.categoria == categoria;
+      final coincideBusqueda =
+          p.nombre.toLowerCase().contains(busqueda.toLowerCase());
+
+      return coincideCategoria && coincideBusqueda;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('BodyFit',
-            style: TextStyle(
-                fontSize: 26, fontWeight: FontWeight.w900, color: color)),
+        title: const Row(
+          children: [
+            Icon(Icons.bolt, color: verdeBodyFit, size: 30),
+            SizedBox(width: 5),
+            Text(
+              'BODYFIT',
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
-            tooltip: 'Ver pedido',
-            onPressed: () => _ir('/resumen'),
-            icon: Badge(
-              isLabelVisible: Pedido.unidades > 0,
-              label: Text('${Pedido.unidades}'),
-              child: const Icon(Icons.shopping_bag_outlined),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('No tienes notificaciones nuevas.'),
+                ),
+              );
+            },
+            icon: const Icon(Icons.notifications_none),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: CircleAvatar(
+              radius: 17,
+              backgroundColor: verdeBodyFit,
+              child: const Icon(
+                Icons.person,
+                color: Colors.black,
+                size: 21,
+              ),
             ),
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const Text('Todo para tu entrenamiento\nen un solo lugar',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          const Text(
-              'Arma tu pedido de ropa deportiva y accesorios sin recorrer varias tiendas.',
-              style: TextStyle(color: Colors.white70)),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => _ir('/registro'),
-                  icon: const Icon(Icons.add_shopping_cart),
-                  label: const Text('Armar pedido'),
-                ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
+          children: [
+            TextField(
+              onChanged: (valor) => setState(() => busqueda = valor),
+              decoration: const InputDecoration(
+                hintText: 'Buscar productos, marcas...',
+                prefixIcon: Icon(Icons.search),
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _ir('/resumen'),
-                  icon: const Icon(Icons.receipt_long),
-                  label: const Text('Ver resumen'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Text('Categorías',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              ChoiceChip(
-                label: const Text('Todas'),
-                selected: _categoria == null,
-                onSelected: (_) => setState(() => _categoria = null),
-              ),
-              for (final c in categorias)
-                ChoiceChip(
-                  label: Text(c),
-                  selected: _categoria == c,
-                  onSelected: (_) => setState(() => _categoria = c),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: productos.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.85,
             ),
-            itemBuilder: (_, i) => ProductoCard(
-              producto: productos[i],
-              onTap: () => _ir('/registro', productos[i]),
+            const SizedBox(height: 18),
+
+            // Banner principal de la colección.
+            Container(
+              height: 145,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF30332B),
+                    Color(0xFF101112),
+                    Color(0xFF252821),
+                  ],
+                ),
+                border: Border.all(color: const Color(0xFF35372F)),
+              ),
+              child: Stack(
+                children: [
+                  const Positioned(
+                    right: -5,
+                    top: 4,
+                    child: Icon(
+                      Icons.fitness_center,
+                      size: 95,
+                      color: Color(0xFF55584C),
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Text(
+                        'NUEVA COLECCIÓN',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Equípate para superar tus límites.',
+                        style: TextStyle(
+                          color: verdeBodyFit,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      InkWell(
+                        onTap: () => setState(() => categoria = 'Todos'),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'DESCUBRIR',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            SizedBox(width: 5),
+                            Icon(
+                              Icons.arrow_forward,
+                              size: 14,
+                              color: verdeBodyFit,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
+
+            const SizedBox(height: 24),
+            const TituloSeccion('Categorías'),
+
+            SizedBox(
+              height: 94,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: categorias.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final nombre = categorias[index];
+                  final seleccionado = categoria == nombre;
+
+                  final iconos = [
+                    Icons.grid_view,
+                    Icons.checkroom,
+                    Icons.straighten,
+                    Icons.dry_cleaning,
+                    Icons.fitness_center,
+                  ];
+
+                  return InkWell(
+                    onTap: () => setState(() => categoria = nombre),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 83,
+                      decoration: BoxDecoration(
+                        color: seleccionado
+                            ? const Color(0xFF292C20)
+                            : panelBodyFit,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: seleccionado
+                              ? verdeBodyFit
+                              : const Color(0xFF242529),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            iconos[index],
+                            color: seleccionado
+                                ? verdeBodyFit
+                                : Colors.white70,
+                            size: 25,
+                          ),
+                          const SizedBox(height: 9),
+                          Text(
+                            nombre == 'Todos' ? 'Todo' : nombre,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 24),
+            const TituloSeccion('Productos destacados'),
+
+            if (productos.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'No se encontraron productos.',
+                  textAlign: TextAlign.center,
+                ),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: productos.length,
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.72,
+                ),
+                itemBuilder: (context, index) {
+                  return TarjetaProducto(
+                    producto: productos[index],
+                    onTap: () => abrirProducto(productos[index]),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF151619),
+        currentIndex: 0,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: verdeBodyFit,
+        unselectedItemColor: Colors.white54,
+        onTap: (index) async {
+          if (index == 1) {
+            setState(() => categoria = 'Todos');
+            return;
+          }
+
+          if (index == 2) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ResumenScreen(),
+              ),
+            );
+            if (mounted) setState(() {});
+          }
+
+          if (index == 3) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Perfil de usuario de demostración.'),
+              ),
+            );
+          }
+        },
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Inicio',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Buscar',
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.shopping_bag_outlined),
+            label: 'Carrito (${CarritoBodyFit.cantidadTotal})',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Perfil',
           ),
         ],
       ),

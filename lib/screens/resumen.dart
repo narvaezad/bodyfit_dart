@@ -1,7 +1,9 @@
+
 import 'package:flutter/material.dart';
 import '../models/models.dart';
+import '../widgets/componentes.dart';
+import 'inicio.dart';
 
-/// PANTALLA 3: consulta del pedido y resultados (subtotal, descuento, envío, total).
 class ResumenScreen extends StatefulWidget {
   const ResumenScreen({super.key});
 
@@ -10,193 +12,435 @@ class ResumenScreen extends StatefulWidget {
 }
 
 class _ResumenScreenState extends State<ResumenScreen> {
-  void _mensaje(String texto, {bool error = false}) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(texto),
-        backgroundColor: error ? Colors.red.shade700 : Colors.green.shade700,
-      ));
+  final _formKey = GlobalKey<FormState>();
+  final _direccionController = TextEditingController();
+
+  String metodoPago = 'Tarjeta débito/crédito';
+
+  @override
+  void dispose() {
+    _direccionController.dispose();
+    super.dispose();
   }
 
-  Future<bool> _confirmar(String titulo, String detalle, String accion) async {
-    final r = await showDialog<bool>(
+  void confirmarPedido() {
+    if (CarritoBodyFit.articulos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Agrega al menos un producto al carrito.'),
+        ),
+      );
+      return;
+    }
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(titulo),
-        content: Text(detalle),
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: panelBodyFit,
+        icon: const Icon(
+          Icons.check_circle,
+          color: verdeBodyFit,
+          size: 52,
+        ),
+        title: const Text(
+          '¡Pedido confirmado!',
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          'Tu pedido por ${precioCOP(CarritoBodyFit.total)} '
+          'se registró correctamente en la demostración.\n\n'
+          'Método de pago: $metodoPago\n'
+          'Dirección: ${_direccionController.text.trim()}\n\n'
+          'No se realizó ningún cobro real.',
+          textAlign: TextAlign.center,
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar')),
-          FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(accion)),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              CarritoBodyFit.vaciar();
+
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const InicioScreen(),
+                ),
+                (route) => false,
+              );
+            },
+            child: const Text(
+              'Volver al inicio',
+              style: TextStyle(
+                color: verdeBodyFit,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
         ],
-      ),
-    );
-    return r ?? false;
-  }
-
-  Future<void> _vaciar() async {
-    if (await _confirmar('Vaciar pedido',
-        '¿Quieres eliminar todos los productos?', 'Vaciar')) {
-      setState(Pedido.limpiar);
-      _mensaje('Pedido vaciado', error: true);
-    }
-  }
-
-  Future<void> _confirmarPedido() async {
-    final ok = await _confirmar(
-      'Confirmar pedido',
-      'Total a pagar: ${formatoCOP(Pedido.total)}\nEntrega en: ${Pedido.direccion}',
-      'Confirmar',
-    );
-    if (ok) {
-      final nombre = Pedido.cliente;
-      setState(Pedido.limpiar);
-      _mensaje('¡Pedido confirmado, $nombre! Estado: realizado');
-    }
-  }
-
-  Widget _fila(String etiqueta, String valor,
-      {bool destacar = false, Color? color}) {
-    final estilo = TextStyle(
-      fontSize: destacar ? 20 : 15,
-      fontWeight: destacar ? FontWeight.bold : FontWeight.normal,
-      color: color,
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(etiqueta, style: estilo), Text(valor, style: estilo)],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
-    final vacio = Pedido.items.isEmpty;
+    final articulos = CarritoBodyFit.articulos;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Resumen del pedido'),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back),
+        ),
+        title: const Text(
+          'Carrito de compras',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
         actions: [
-          if (!vacio)
-            IconButton(
-              tooltip: 'Vaciar pedido',
-              onPressed: _vaciar,
-              icon: const Icon(Icons.delete_sweep_outlined),
+          TextButton(
+            onPressed: () => setState(() => CarritoBodyFit.vaciar()),
+            child: const Text(
+              'Vaciar',
+              style: TextStyle(
+                color: verdeBodyFit,
+                fontWeight: FontWeight.w800,
+              ),
             ),
+          ),
         ],
       ),
-      body: vacio
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+      body: SafeArea(
+        child: articulos.isEmpty
+            ? _carritoVacio(context)
+            : Column(
                 children: [
-                  const Icon(Icons.shopping_bag_outlined,
-                      size: 72, color: Colors.white24),
-                  const SizedBox(height: 12),
-                  const Text('Tu pedido está vacío'),
-                  const SizedBox(height: 12),
-                  FilledButton(
-                    onPressed: () => Navigator.pushNamed(context, '/registro')
-                        .then((_) => setState(() {})),
-                    child: const Text('Agregar productos'),
-                  ),
-                ],
-              ),
-            )
-          : Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.person_outline),
-                      title: Text(Pedido.cliente),
-                      subtitle: Text(Pedido.direccion),
-                      trailing: Pedido.express
-                          ? Icon(Icons.bolt, color: color)
-                          : null,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: Pedido.items.length,
-                    itemBuilder: (_, i) {
-                      final it = Pedido.items[i];
-                      return Card(
-                        child: ListTile(
-                          leading: Icon(it.producto.icono, color: color),
-                          title: Text(it.producto.nombre),
-                          subtitle: Text(
-                              'Talla ${it.talla} · ${it.cantidad} × ${formatoCOP(it.producto.precio)}'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
+                      children: [
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Tus productos',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${CarritoBodyFit.cantidadTotal} artículo(s)',
+                              style: const TextStyle(
+                                color: grisBodyFit,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Artículos y botón para eliminarlos.
+                        ...List.generate(articulos.length, (index) {
+                          final articulo = articulos[index];
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: panelBodyFit,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              children: [
+                                ImagenProducto(
+                                  producto: articulo.producto,
+                                  tamano: 76,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        articulo.producto.nombre,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        'Talla: ${articulo.talla} · '
+                                        'Cantidad: ${articulo.cantidad}',
+                                        style: const TextStyle(
+                                          color: grisBodyFit,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        precioCOP(articulo.subtotal),
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Eliminar producto',
+                                  onPressed: () {
+                                    setState(() {
+                                      CarritoBodyFit.eliminar(index);
+                                    });
+
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Producto eliminado del carrito.',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+
+                        const SizedBox(height: 12),
+                        const TituloSeccion('Entrega'),
+
+                        Form(
+                          key: _formKey,
+                          child: TextFormField(
+                            controller: _direccionController,
+                            textCapitalization:
+                                TextCapitalization.sentences,
+                            decoration: const InputDecoration(
+                              labelText: 'Dirección de entrega',
+                              hintText: 'Ej. Calle 45 #12-30, Barranquilla',
+                              prefixIcon: Icon(
+                                Icons.location_on_outlined,
+                              ),
+                            ),
+                            validator: (valor) {
+                              if (valor == null ||
+                                  valor.trim().length < 5) {
+                                return 'Ingresa una dirección válida.';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+                        const TituloSeccion('Método de pago'),
+
+                        Container(
+                          decoration: BoxDecoration(
+                            color: panelBodyFit,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
                             children: [
-                              Text(formatoCOP(it.subtotal),
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
-                              IconButton(
-                                tooltip: 'Quitar',
-                                icon: const Icon(Icons.close),
-                                onPressed: () {
-                                  setState(() => Pedido.items.removeAt(i));
-                                  _mensaje('Producto eliminado', error: true);
+                              RadioListTile<String>(
+                                value: 'Tarjeta débito/crédito',
+                                groupValue: metodoPago,
+                                activeColor: verdeBodyFit,
+                                contentPadding:
+                                    const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                secondary: const Icon(Icons.credit_card),
+                                title: const Text(
+                                  'Tarjeta débito/crédito',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                onChanged: (valor) {
+                                  if (valor != null) {
+                                    setState(() => metodoPago = valor);
+                                  }
+                                },
+                              ),
+                              RadioListTile<String>(
+                                value: 'Pago contra entrega',
+                                groupValue: metodoPago,
+                                activeColor: verdeBodyFit,
+                                contentPadding:
+                                    const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                secondary: const Icon(
+                                  Icons.local_shipping_outlined,
+                                ),
+                                title: const Text(
+                                  'Pago contra entrega',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                onChanged: (valor) {
+                                  if (valor != null) {
+                                    setState(() => metodoPago = valor);
+                                  }
                                 },
                               ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1A1A1A),
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _fila('Unidades', '${Pedido.unidades}'),
-                        _fila('Subtotal', formatoCOP(Pedido.subtotal)),
+
+                        const SizedBox(height: 22),
+                        const TituloSeccion('Resumen de compra'),
+
                         _fila(
-                          'Descuento (${(Pedido.porcentajeDescuento * 100).round()}%)',
-                          '-${formatoCOP(Pedido.descuento)}',
-                          color: Colors.greenAccent,
+                          'Subtotal',
+                          precioCOP(CarritoBodyFit.subtotal),
                         ),
-                        _fila('Envío',
-                            Pedido.envio == 0 ? 'Gratis' : formatoCOP(Pedido.envio)),
-                        const Divider(),
-                        _fila('TOTAL', formatoCOP(Pedido.total),
-                            destacar: true, color: color),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton.icon(
-                            onPressed: _confirmarPedido,
-                            icon: const Icon(Icons.check_circle_outline),
-                            label: const Text('Confirmar pedido'),
+                        const SizedBox(height: 10),
+                        _fila(
+                          'Envío',
+                          CarritoBodyFit.envio == 0
+                              ? 'GRATIS'
+                              : precioCOP(CarritoBodyFit.envio),
+                          verde: CarritoBodyFit.envio == 0,
+                        ),
+                        const Divider(
+                          height: 28,
+                          color: Color(0xFF292A2D),
+                        ),
+                        _fila(
+                          'Total a pagar',
+                          precioCOP(CarritoBodyFit.total),
+                          grande: true,
+                          verde: true,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Envío gratis por compras desde \$150.000. '
+                          'Precios de demostración en pesos colombianos.',
+                          style: TextStyle(
+                            color: grisBodyFit,
+                            fontSize: 11,
+                            height: 1.5,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
+
+                  // Botón fijo en la parte inferior.
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF101113),
+                      border: Border(
+                        top: BorderSide(color: Color(0xFF242529)),
+                      ),
+                    ),
+                    child: BotonBodyFit(
+                      texto: 'PAGAR AHORA',
+                      icono: Icons.lock_outline,
+                      onPressed: confirmarPedido,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _fila(
+    String titulo,
+    String valor, {
+    bool grande = false,
+    bool verde = false,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            titulo,
+            style: TextStyle(
+              fontSize: grande ? 15 : 13,
+              fontWeight: grande ? FontWeight.w900 : FontWeight.normal,
+              color: grande ? Colors.white : grisBodyFit,
             ),
+          ),
+        ),
+        Text(
+          valor,
+          style: TextStyle(
+            fontSize: grande ? 19 : 13,
+            fontWeight: FontWeight.w900,
+            color: verde ? verdeBodyFit : Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _carritoVacio(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.shopping_bag_outlined,
+              size: 75,
+              color: verdeBodyFit,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Tu carrito está vacío',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Agrega productos desde el catálogo para '
+              'ver aquí tu resumen de compra.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: grisBodyFit,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 24),
+            BotonBodyFit(
+              texto: 'VOLVER A LA TIENDA',
+              icono: Icons.storefront_outlined,
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const InicioScreen(),
+                  ),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
