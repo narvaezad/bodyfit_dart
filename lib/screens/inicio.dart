@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'componentes.dart';
-import 'models.dart';
+import '../widgets/componentes.dart';
+import '../models/models.dart';
 
 /// PANTALLA 1: presentación de la app y acceso a las funcionalidades.
 class InicioScreen extends StatefulWidget {

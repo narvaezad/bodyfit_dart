@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'models.dart';
+import '../models/models.dart';
 
 /// PANTALLA 3: consulta del pedido y resultados (subtotal, descuento, envío, total).
 class ResumenScreen extends StatefulWidget {

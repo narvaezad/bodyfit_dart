@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'models.dart';
+import '../models/models.dart';
 
 /// COMPONENTE PERSONALIZADO 1: tarjeta de producto reutilizable.
 class ProductoCard extends StatelessWidget {

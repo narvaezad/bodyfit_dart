@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'componentes.dart';
-import 'models.dart';
+import '../widgets/componentes.dart';
+import '../models/models.dart';
 
 /// PANTALLA 2: formulario para registrar productos del pedido.
 class RegistroScreen extends StatefulWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'inicio.dart';
-import 'registro.dart';
-import 'resumen.dart';
+import 'screens/inicio.dart';
+import 'screens/registro.dart';
+import 'screens/resumen.dart';
 
 void main() => runApp(const BodyFitApp());
 
