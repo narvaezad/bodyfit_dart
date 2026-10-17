@@ -24,15 +24,15 @@ class _InicioScreenState extends State<InicioScreen> {
     'Accesorios',
   ];
 
-  void abrirProducto(Producto producto) async {
-    await Navigator.push(
+  void abrirProducto(Producto producto) {
+    Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => RegistroScreen(producto: producto),
       ),
-    );
-
-    if (mounted) setState(() {});
+    ).then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -185,7 +185,7 @@ class _InicioScreenState extends State<InicioScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: categorias.length,
-                separatorBuilder: (_, __) =>
+                separatorBuilder: (_, _) =>
                     const SizedBox(width: 10),
                 itemBuilder: (context, index) {
                   final nombre = categorias[index];
@@ -279,20 +279,21 @@ class _InicioScreenState extends State<InicioScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: verdeBodyFit,
         unselectedItemColor: Colors.white54,
-        onTap: (index) async {
+        onTap: (index) {
           if (index == 1) {
             setState(() => categoria = 'Todos');
             return;
           }
 
           if (index == 2) {
-            await Navigator.push(
+            Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => const ResumenScreen(),
               ),
-            );
-            if (mounted) setState(() {});
+            ).then((_) {
+              if (mounted) setState(() {});
+            });
           }
 
           if (index == 3) {

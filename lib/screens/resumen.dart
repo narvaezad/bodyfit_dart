@@ -258,49 +258,45 @@ class _ResumenScreenState extends State<ResumenScreen> {
                             color: panelBodyFit,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Column(
-                            children: [
-                              RadioListTile<String>(
-                                value: 'Tarjeta débito/crédito',
-                                groupValue: metodoPago,
-                                activeColor: verdeBodyFit,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(
-                                  horizontal: 8,
+                          child: RadioGroup<String>(
+                            groupValue: metodoPago,
+                            onChanged: (valor) {
+                              if (valor != null) {
+                                setState(() => metodoPago = valor);
+                              }
+                            },
+                            child: Column(
+                              children: [
+                                RadioListTile<String>(
+                                  value: 'Tarjeta débito/crédito',
+                                  activeColor: verdeBodyFit,
+                                  contentPadding:
+                                      const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  secondary: const Icon(Icons.credit_card),
+                                  title: const Text(
+                                    'Tarjeta débito/crédito',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
                                 ),
-                                secondary: const Icon(Icons.credit_card),
-                                title: const Text(
-                                  'Tarjeta débito/crédito',
-                                  style: TextStyle(fontSize: 12),
+                                RadioListTile<String>(
+                                  value: 'Pago contra entrega',
+                                  activeColor: verdeBodyFit,
+                                  contentPadding:
+                                      const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  secondary: const Icon(
+                                    Icons.local_shipping_outlined,
+                                  ),
+                                  title: const Text(
+                                    'Pago contra entrega',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
                                 ),
-                                onChanged: (valor) {
-                                  if (valor != null) {
-                                    setState(() => metodoPago = valor);
-                                  }
-                                },
-                              ),
-                              RadioListTile<String>(
-                                value: 'Pago contra entrega',
-                                groupValue: metodoPago,
-                                activeColor: verdeBodyFit,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                                secondary: const Icon(
-                                  Icons.local_shipping_outlined,
-                                ),
-                                title: const Text(
-                                  'Pago contra entrega',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                onChanged: (valor) {
-                                  if (valor != null) {
-                                    setState(() => metodoPago = valor);
-                                  }
-                                },
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
 
