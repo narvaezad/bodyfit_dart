@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+
 import '../models/models.dart';
 
 const verdeBodyFit = Color(0xFFE5FF35);
@@ -51,10 +51,7 @@ class BotonBodyFit extends StatelessWidget {
         icon: Icon(icono ?? Icons.arrow_forward),
         label: Text(
           texto,
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 14,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: verde ? verdeBodyFit : Colors.white,
@@ -73,11 +70,7 @@ class ImagenProducto extends StatelessWidget {
   final Producto producto;
   final double tamano;
 
-  const ImagenProducto({
-    super.key,
-    required this.producto,
-    this.tamano = 80,
-  });
+  const ImagenProducto({super.key, required this.producto, this.tamano = 80});
 
   @override
   Widget build(BuildContext context) {
@@ -88,10 +81,17 @@ class ImagenProducto extends StatelessWidget {
         color: const Color(0xFFE8E5DB),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(
-        producto.icono,
-        size: tamano * 0.53,
-        color: const Color(0xFF252525),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          producto.imagen,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => Icon(
+            producto.icono,
+            size: tamano * 0.53,
+            color: const Color(0xFF252525),
+          ),
+        ),
       ),
     );
   }
@@ -126,10 +126,7 @@ class TarjetaProducto extends StatelessWidget {
                 children: [
                   Positioned.fill(
                     child: Center(
-                      child: ImagenProducto(
-                        producto: producto,
-                        tamano: 115,
-                      ),
+                      child: ImagenProducto(producto: producto, tamano: 115),
                     ),
                   ),
                   const Positioned(
@@ -149,18 +146,12 @@ class TarjetaProducto extends StatelessWidget {
               producto.nombre,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 5),
             Text(
               precioCOP(producto.precio),
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
             ),
           ],
         ),

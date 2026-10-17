@@ -63,11 +63,19 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     ),
                     child: Stack(
                       children: [
-                        Center(
-                          child: Icon(
-                            producto.icono,
-                            size: 170,
-                            color: const Color(0xFFE7E4DB),
+                        Positioned.fill(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.asset(
+                              producto.imagen,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                producto.icono,
+                                size: 170,
+                                color: const Color(0xFFE7E4DB),
+                              ),
+                            ),
                           ),
                         ),
                         const Positioned(

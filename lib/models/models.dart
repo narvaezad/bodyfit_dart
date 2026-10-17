@@ -7,6 +7,7 @@ class Producto {
   final String categoria;
   final double precio;
   final String descripcion;
+  final String imagen;
   final IconData icono;
 
   const Producto({
@@ -15,6 +16,7 @@ class Producto {
     required this.categoria,
     required this.precio,
     required this.descripcion,
+    required this.imagen,
     required this.icono,
   });
 }
@@ -36,42 +38,46 @@ class ArticuloCarrito {
 const productosBodyFit = <Producto>[
   Producto(
     id: 'p1',
-    nombre: 'Essential Tee',
+    nombre: 'Camisa deportiva',
     categoria: 'Camisetas',
     precio: 89900,
     descripcion:
         'Camiseta deportiva de tejido ligero y transpirable, '
         'ideal para tus entrenamientos.',
+    imagen: 'lib/assets/imagenes/camisa.jpg',
     icono: Icons.checkroom,
   ),
   Producto(
     id: 'p2',
-    nombre: 'Training Joggers',
+    nombre: 'Pantalón deportivo',
     categoria: 'Pantalones',
     precio: 149900,
     descripcion:
         'Jogger deportivo cómodo y flexible para entrenar '
         'o usar en tu día a día.',
+    imagen: 'lib/assets/imagenes/pantalon.jpg',
     icono: Icons.airline_seat_legroom_extra,
   ),
   Producto(
     id: 'p3',
-    nombre: 'Performance Shorts',
+    nombre: 'Short',
     categoria: 'Shorts',
     precio: 69900,
     descripcion:
         'Short ligero que facilita el movimiento durante '
         'tus sesiones de entrenamiento.',
+    imagen: 'lib/assets/imagenes/short.jpeg',
     icono: Icons.dry_cleaning,
   ),
   Producto(
     id: 'p4',
-    nombre: 'Wrist Straps',
+    nombre: 'Straps',
     categoria: 'Accesorios',
     precio: 29900,
     descripcion:
         'Accesorios de apoyo para mejorar el agarre '
         'durante determinados ejercicios de fuerza.',
+    imagen: 'lib/assets/imagenes/straps.jpg',
     icono: Icons.fitness_center,
   ),
 ];
